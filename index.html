@@ -244,7 +244,7 @@
 <div class="review-bar">
   <div class="wrap">
     <span><b>Bozza testi per approvazione.</b> Immagini e colori sono segnaposto: conta solo il testo.</span>
-    <span>In <span class="key">rosso</span> i testi da confermare. Passa il mouse per leggere la domanda, <b>clicca sul numero <span class="mark" style="vertical-align:middle;cursor:default">n</span> per rispondere</b>. Vuoi commentare un'altra frase? <b>Selezionala</b> e premi "Commenta". Per tutto il resto usa <b>"＋ Nota libera"</b> in basso. Si salva tutto da solo.</span>
+    <span>In <span class="key">rosso</span> i testi da confermare. Passa il mouse per leggere la domanda, <b>clicca sul numero <span class="mark" style="vertical-align:middle;cursor:default">n</span> per rispondere</b>. Si salva tutto da solo.</span>
   </div>
 </div>
 
@@ -749,11 +749,10 @@
 <section class="summary" id="da-confermare">
   <div class="wrap" id="summary-wrap">
     <h2>Le tue risposte</h2>
-    <p>Puoi rispondere qui, una nota dopo l'altra, oppure direttamente nella pagina cliccando sui numeri rossi. Si salva tutto da solo: puoi chiudere e riprendere quando vuoi, anche da un altro dispositivo.</p>
+    <p>Puoi rispondere qui, una nota dopo l'altra, oppure direttamente nella pagina cliccando sui numeri rossi. Per ogni nota bastano un clic su "Va bene così" o "Toglilo", oppure due parole. Si salva tutto da solo: puoi chiudere e riprendere quando vuoi, anche da un altro dispositivo.</p>
     <ol id="summary-list"></ol>
-    <h3 style="margin-top:36px">Note libere e commenti sui testi</h3>
-    <p class="sub" id="comments-empty">Nessuna nota. Per aggiungerne una: premi "＋ Nota libera" nella barra in basso, oppure seleziona una frase e premi "Commenta".</p>
-    <ul id="comments-list"></ul>
+    <p class="sub" id="comments-empty" hidden></p>
+    <ul id="comments-list" hidden></ul>
     <h3 style="margin-top:36px">Commento generale (facoltativo)</h3>
     <textarea id="general-comment" rows="4" placeholder="Impressioni sulla pagina, cose che mancano, cose che non ti convincono…"></textarea>
     <div class="final-actions">
@@ -765,7 +764,6 @@
 </section>
 
 <div id="review-status">
-  <button type="button" id="free-note">＋ Nota libera</button>
   <span id="rs-count"></span>
   <span id="rs-save" class="rs-save"></span>
   <a href="#da-confermare">Vai alle risposte</a>
@@ -928,8 +926,6 @@
         cbtn.style.top = Math.max(8, r.top - 44) + 'px';
       }, 10);
     }
-    document.addEventListener('mouseup', onSelect);
-    document.addEventListener('touchend', onSelect);
     window.addEventListener('scroll', function(){ cbtn.style.display = 'none'; hideTip(); }, { passive: true });
     cbtn.addEventListener('mousedown', function(e){ e.preventDefault(); });
     cbtn.addEventListener('click', function(e){
@@ -954,7 +950,8 @@
       else if (best.tagName === 'FOOTER') t = 'Piè di pagina';
       return 'Sezione: ' + t;
     }
-    document.getElementById('free-note').addEventListener('click', function(e){
+    var fnBtn = document.getElementById('free-note');
+    if (fnBtn) fnBtn.addEventListener('click', function(e){
       e.stopPropagation(); hideTip();
       openEditor({ type: 'comment', quote: sectionInView(), at: this });
       document.getElementById('ed-title').textContent = 'Nota libera';
@@ -1024,7 +1021,7 @@
         });
         cl.appendChild(li);
       });
-      document.getElementById('comments-empty').style.display = state.comments.length ? 'none' : 'block';
+
     }
 
     // ---------- salvataggio ----------
