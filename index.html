@@ -206,6 +206,7 @@
   .summary{padding-bottom:110px}
   #review-status{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#111;color:#fff;font-size:14px;display:flex;gap:16px;justify-content:center;align-items:center;padding:10px 16px;flex-wrap:wrap}
   #review-status a{color:#fff}
+  #free-note{background:#fff;color:#111;border:0;border-radius:6px;padding:7px 12px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .rs-save.ok{color:#9fe0a8}.rs-save.error{color:#ff9aa8}.rs-save.saving,.rs-save.local{color:#ddd}
   body{padding-bottom:48px}
   @media (max-width:640px){
@@ -243,7 +244,7 @@
 <div class="review-bar">
   <div class="wrap">
     <span><b>Bozza testi per approvazione.</b> Immagini e colori sono segnaposto: conta solo il testo.</span>
-    <span>In <span class="key">rosso</span> i testi da confermare. Passa il mouse per leggere la domanda, <b>clicca sul numero <span class="mark" style="vertical-align:middle;cursor:default">n</span> per rispondere</b>. Vuoi commentare un'altra frase? <b>Selezionala</b> e premi "Commenta". Si salva tutto da solo.</span>
+    <span>In <span class="key">rosso</span> i testi da confermare. Passa il mouse per leggere la domanda, <b>clicca sul numero <span class="mark" style="vertical-align:middle;cursor:default">n</span> per rispondere</b>. Vuoi commentare un'altra frase? <b>Selezionala</b> e premi "Commenta". Per tutto il resto usa <b>"＋ Nota libera"</b> in basso. Si salva tutto da solo.</span>
   </div>
 </div>
 
@@ -750,8 +751,8 @@
     <h2>Le tue risposte</h2>
     <p>Puoi rispondere qui, una nota dopo l'altra, oppure direttamente nella pagina cliccando sui numeri rossi. Si salva tutto da solo: puoi chiudere e riprendere quando vuoi, anche da un altro dispositivo.</p>
     <ol id="summary-list"></ol>
-    <h3 style="margin-top:36px">Altri commenti sui testi</h3>
-    <p class="sub" id="comments-empty">Nessun commento. Per aggiungerne uno, seleziona una frase nella pagina e premi "Commenta".</p>
+    <h3 style="margin-top:36px">Note libere e commenti sui testi</h3>
+    <p class="sub" id="comments-empty">Nessuna nota. Per aggiungerne una: premi "＋ Nota libera" nella barra in basso, oppure seleziona una frase e premi "Commenta".</p>
     <ul id="comments-list"></ul>
     <h3 style="margin-top:36px">Commento generale (facoltativo)</h3>
     <textarea id="general-comment" rows="4" placeholder="Impressioni sulla pagina, cose che mancano, cose che non ti convincono…"></textarea>
@@ -764,6 +765,7 @@
 </section>
 
 <div id="review-status">
+  <button type="button" id="free-note">＋ Nota libera</button>
   <span id="rs-count"></span>
   <span id="rs-save" class="rs-save"></span>
   <a href="#da-confermare">Vai alle risposte</a>
@@ -938,6 +940,27 @@
       try { window.getSelection().removeAllRanges(); } catch(x){}
     });
 
+    // ---------- nota libera sulla sezione visibile ----------
+    function sectionInView(){
+      var mid = window.innerHeight / 2, best = null;
+      document.querySelectorAll('main > section, footer').forEach(function(sec){
+        var r = sec.getBoundingClientRect();
+        if (r.top <= mid && r.bottom >= mid) best = sec;
+      });
+      if (!best) return 'Pagina in generale';
+      var h = best.querySelector('h1, h2');
+      var t = 'Sezione';
+      if (h) { var hc = h.cloneNode(true); hc.querySelectorAll('.mark').forEach(function(m){ m.remove(); }); t = hc.textContent.replace(/\s+/g,' ').trim(); }
+      else if (best.tagName === 'FOOTER') t = 'Piè di pagina';
+      return 'Sezione: ' + t;
+    }
+    document.getElementById('free-note').addEventListener('click', function(e){
+      e.stopPropagation(); hideTip();
+      openEditor({ type: 'comment', quote: sectionInView(), at: this });
+      document.getElementById('ed-title').textContent = 'Nota libera';
+      document.getElementById('ed-q').textContent = 'Scrivi quello che vuoi: immagini, ordine delle sezioni, cose che mancano… Riferita a:';
+    });
+
     // ---------- riepilogo in fondo ----------
     var list = document.getElementById('summary-list');
     notes.forEach(function(it){
@@ -995,7 +1018,7 @@
       cl.innerHTML = '';
       state.comments.forEach(function(c){
         var li = document.createElement('li');
-        li.innerHTML = '<p class="sl-a">Sul testo: “' + esc(c.quote) + '”</p><p>' + esc(c.text) + '</p><button type="button" class="link">Elimina</button>';
+        li.innerHTML = '<p class="sl-a">' + (c.quote.indexOf('Sezione:') === 0 || c.quote === 'Pagina in generale' ? esc(c.quote) : 'Sul testo: “' + esc(c.quote) + '”') + '</p><p>' + esc(c.text) + '</p><button type="button" class="link">Elimina</button>';
         li.querySelector('button').addEventListener('click', function(){
           state.comments = state.comments.filter(function(x){ return x.id !== c.id; }); changed();
         });
